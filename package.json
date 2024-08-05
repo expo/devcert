@@ -33,7 +33,6 @@
     "@types/lodash": "^4.14.92",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^8.5.7",
-    "@types/rimraf": "^2.0.2",
     "@types/tmp": "^0.0.33",
     "standard-version": "^8.0.1",
     "typescript": "^2.9.2"
@@ -48,7 +47,6 @@
     "lodash": "^4.17.21",
     "mkdirp": "^0.5.1",
     "password-prompt": "^1.0.4",
-    "rimraf": "^2.6.2",
     "sudo-prompt": "^8.2.0",
     "tmp": "^0.0.33",
     "tslib": "^2.4.0"
