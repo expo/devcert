@@ -2,7 +2,7 @@ import { execFileSync, ExecFileSyncOptions } from 'child_process';
 import tmp from 'tmp';
 import createDebug from 'debug';
 import path from 'path';
-import sudoPrompt from 'sudo-prompt';
+import sudoPrompt from '@expo/sudo-prompt';
 
 import { configPath } from './constants';
 
