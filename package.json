@@ -47,7 +47,6 @@
     "lodash": "^4.17.21",
     "mkdirp": "^0.5.1",
     "password-prompt": "^1.0.4",
-    "sudo-prompt": "^8.2.0",
     "tmp": "^0.0.33",
     "tslib": "^2.4.0"
   }
