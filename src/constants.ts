@@ -3,7 +3,6 @@ import { unlinkSync as rm, writeFileSync as writeFile, readFileSync as readFile 
 import { sync as mkdirp } from 'mkdirp';
 import { template as makeTemplate } from 'lodash';
 import applicationConfigPath = require('application-config-path');
-import eol from 'eol';
 import { mktmp } from './utils';
 
 export const VALID_IP = /(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}/;
@@ -26,12 +25,16 @@ export const opensslSerialFilePath = configPath('certificate-authority', 'serial
 export const opensslDatabaseFilePath = configPath('certificate-authority', 'index.txt');
 export const caSelfSignConfig = path.join(__dirname, '../openssl-configurations/certificate-authority-self-signing.conf');
 
+function eolAuto(str: string): string {
+  return str.replace(/\r?\n|\r/g, isWindows ? '\r\n' : '\n');
+}
+
 export function withDomainSigningRequestConfig(domain: string, cb: (filepath: string) => void) {
   let tmpFile = mktmp();
   let source = readFile(path.join(__dirname, '../openssl-configurations/domain-certificate-signing-requests.conf'), 'utf-8');
   let template = makeTemplate(source);
   let result = template({ domain });
-  writeFile(tmpFile, eol.auto(result));
+  writeFile(tmpFile, eolAuto(result));
   cb(tmpFile);
   rm(tmpFile);
 }
@@ -46,14 +49,14 @@ export function withDomainCertificateConfig(domain: string, cb: (filepath: strin
     databaseFile: opensslDatabaseFilePath,
     domainDir: pathForDomain(domain)
   });
-  writeFile(tmpFile, eol.auto(result));
+  writeFile(tmpFile, eolAuto(result));
   cb(tmpFile);
   rm(tmpFile);
 }
 
   // confTemplate = confTemplate.replace(/DATABASE_PATH/, configPath('index.txt').replace(/\\/g, '\\\\'));
   // confTemplate = confTemplate.replace(/SERIAL_PATH/, configPath('serial').replace(/\\/g, '\\\\'));
-  // confTemplate = eol.auto(confTemplate);
+  // confTemplate = eolAuto(confTemplate);
 
 export const rootCADir = configPath('certificate-authority');
 export const rootCAKeyPath = configPath('certificate-authority', 'private-key.key');
