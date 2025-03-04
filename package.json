@@ -28,7 +28,6 @@
   "homepage": "https://github.com/expo/devcert#readme",
   "devDependencies": {
     "@types/debug": "^0.0.30",
-    "@types/get-port": "^3.2.0",
     "@types/lodash": "^4.14.92",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^20.12.7",
@@ -42,7 +41,6 @@
     "command-exists": "^1.2.4",
     "debug": "^3.1.0",
     "eol": "^0.9.1",
-    "get-port": "^3.2.0",
     "glob": "^10.4.2",
     "lodash": "^4.17.21",
     "mkdirp": "^0.5.1",

@@ -1,8 +1,7 @@
 import path from 'path';
-import url from 'url';
 import createDebug from 'debug';
 import assert from 'assert';
-import getPort from 'get-port';
+import net from 'net';
 import http from 'http';
 import { sync as glob } from 'glob';
 import { readFileSync as readFile, existsSync as exists } from 'fs';
@@ -109,24 +108,33 @@ async function sleep(ms: number) {
  */
 export async function openCertificateInFirefox(firefoxPath: string, certPath: string): Promise<void> {
   debug('Adding devert to Firefox trust stores manually. Launching a webserver to host our certificate temporarily ...');
-  let port = await getPort();
-  let server = http.createServer(async (req, res) => {
-    let { pathname } = url.parse(req.url);
+  let port: number;
+  const server = http.createServer(async (req, res) => {
+    let { pathname } = new URL(req.url);
     if (pathname === '/certificate') {
       res.writeHead(200, { 'Content-type': 'application/x-x509-ca-cert' });
       res.write(readFile(certPath));
       res.end();
     } else {
       res.writeHead(200);
-      res.write(await UI.firefoxWizardPromptPage(`http://localhost:${ port }/certificate`));
+      res.write(await UI.firefoxWizardPromptPage(`http://localhost:${port}/certificate`));
       res.end();
     }
-  }).listen(port);
-  debug('Certificate server is up. Printing instructions for user and launching Firefox with hosted certificate URL');
-  await UI.startFirefoxWizard(`http://localhost:${ port }`);
-  run(firefoxPath, [`http://localhost:${ port }`]);
-  await UI.waitForFirefoxWizard();
-  server.close();
+  });
+  port = await new Promise((resolve, reject) => {
+    server.on('error', reject);
+    server.listen(() => {
+      resolve((server.address() as net.AddressInfo).port);
+    });
+  });
+  try {
+    debug('Certificate server is up. Printing instructions for user and launching Firefox with hosted certificate URL');
+    await UI.startFirefoxWizard(`http://localhost:${port}`);
+    run(firefoxPath, [`http://localhost:${ port }`]);
+    await UI.waitForFirefoxWizard();
+  } finally {
+    server.close();
+  }
 }
 
 export function assertNotTouchingFiles(filepath: string, operation: string): void {
