@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs';
-import { template as makeTemplate } from 'lodash';
 import applicationConfigPath = require('application-config-path');
 import { mktmp } from './utils';
 
@@ -31,8 +30,7 @@ function eolAuto(str: string): string {
 export function withDomainSigningRequestConfig(domain: string, cb: (filepath: string) => void) {
   let tmpFile = mktmp();
   let source = fs.readFileSync(path.join(__dirname, '../openssl-configurations/domain-certificate-signing-requests.conf'), 'utf-8');
-  let template = makeTemplate(source);
-  let result = template({ domain });
+  let result = source.replace(/%DOMAIN%/g, domain);
   fs.writeFileSync(tmpFile, eolAuto(result));
   cb(tmpFile);
   fs.rmSync(tmpFile);
@@ -41,13 +39,11 @@ export function withDomainSigningRequestConfig(domain: string, cb: (filepath: st
 export function withDomainCertificateConfig(domain: string, cb: (filepath: string) => void) {
   let tmpFile = mktmp();
   let source = fs.readFileSync(path.join(__dirname, '../openssl-configurations/domain-certificates.conf'), 'utf-8');
-  let template = makeTemplate(source);
-  let result = template({
-    domain,
-    serialFile: opensslSerialFilePath,
-    databaseFile: opensslDatabaseFilePath,
-    domainDir: pathForDomain(domain)
-  });
+  let result = source
+    .replace(/%DOMAIN%/g, domain)
+    .replace(/%SERIALFILE%/g, opensslSerialFilePath.replace(/\\/g, '\\\\'))
+    .replace(/%DATABASEFILE%/g, opensslDatabaseFilePath.replace(/\\/g, '\\\\'))
+    .replace(/%DOMAINDIR%/g, pathForDomain(domain).replace(/\\/g, '\\\\'))
   fs.writeFileSync(tmpFile, eolAuto(result));
   cb(tmpFile);
   fs.rmSync(tmpFile);
