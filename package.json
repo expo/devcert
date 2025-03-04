@@ -34,7 +34,6 @@
   },
   "dependencies": {
     "@expo/sudo-prompt": "^9.3.1",
-    "command-exists": "^1.2.4",
     "debug": "^3.1.0",
     "glob": "^10.4.2"
   }

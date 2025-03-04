@@ -1,9 +1,8 @@
 import path from 'path';
 import { existsSync as exists, readFileSync as read, writeFileSync as writeFile } from 'fs';
 import createDebug from 'debug';
-import { sync as commandExists } from 'command-exists';
 import { addCertificateToNSSCertDB, assertNotTouchingFiles, openCertificateInFirefox, closeFirefox, removeCertificateFromNSSCertDB } from './shared';
-import { run, sudoAppend } from '../utils';
+import { run, sudoAppend, commandExists } from '../utils';
 import { Options } from '../index';
 import UI from '../user-interface';
 import { Platform } from '.';

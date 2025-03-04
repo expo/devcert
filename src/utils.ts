@@ -1,4 +1,4 @@
-import { execFileSync, ExecFileSyncOptions } from 'child_process';
+import { execSync, execFileSync, ExecFileSyncOptions } from 'child_process';
 import { randomBytes } from 'crypto';
 import fs from 'fs';
 import os from 'os';
@@ -6,7 +6,7 @@ import createDebug from 'debug';
 import path from 'path';
 import sudoPrompt from '@expo/sudo-prompt';
 
-import { configPath } from './constants';
+import { configPath, isWindows } from './constants';
 
 const debug = createDebug('devcert:util');
 
@@ -55,4 +55,24 @@ export function sudo(cmd: string): Promise<string | null> {
       error ? reject(error) : resolve(stdout);
     });
   });
+}
+
+const _commands: Record<string, string | null> = {};
+
+export function commandExists(command: string): string | null {
+  if (_commands[command] !== undefined) {
+    return _commands[command];
+  }
+  const paths = process.env[isWindows ? 'Path' : 'PATH'].split(path.delimiter);
+  const extensions = [...(process.env.PATHEXT || '').split(path.delimiter), ''];
+  for (const dir of paths) {
+    for (const extension of extensions) {
+      const filePath = path.join(dir, command + extension);
+      try {
+        fs.accessSync(filePath, fs.constants.X_OK);
+        return (_commands[command] = filePath);
+      } catch {}
+    }
+  }
+  return (_commands[command] = null);
 }

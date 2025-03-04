@@ -1,6 +1,5 @@
 import { rmSync as rm, readFileSync as readFile, readdirSync as readdir, existsSync as exists } from 'fs';
 import createDebug from 'debug';
-import { sync as commandExists } from 'command-exists';
 import {
   isMac,
   isLinux,
@@ -13,6 +12,7 @@ import {
   VALID_IP
 } from './constants';
 import currentPlatform from './platforms';
+import { commandExists } from './utils';
 import installCertificateAuthority, { ensureCACertReadable, uninstall } from './certificate-authority';
 import generateDomainCertificate from './certificates';
 import UI, { UserInterface } from './user-interface';
