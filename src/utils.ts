@@ -1,5 +1,7 @@
 import { execFileSync, ExecFileSyncOptions } from 'child_process';
-import tmp from 'tmp';
+import { randomBytes } from 'crypto';
+import fs from 'fs';
+import os from 'os';
 import createDebug from 'debug';
 import path from 'path';
 import sudoPrompt from '@expo/sudo-prompt';
@@ -40,9 +42,10 @@ export function reportableError(message: string) {
 }
 
 export function mktmp() {
-  // discardDescriptor because windows complains the file is in use if we create a tmp file
-  // and then shell out to a process that tries to use it
-  return tmp.fileSync({ discardDescriptor: true }).name;
+  const random = randomBytes(6).toString('hex');
+  const tmppath = path.join(os.tmpdir(), `tmp-${process.pid}${random}`);
+  fs.closeSync(fs.openSync(tmppath, 'w'));
+  return tmppath;
 }
 
 export function sudo(cmd: string): Promise<string | null> {
