@@ -1,7 +1,22 @@
 import path from 'path';
 import fs from 'fs';
-import applicationConfigPath = require('application-config-path');
 import { mktmp } from './utils';
+
+function applicationConfigPath(name: string): string {
+  switch (process.platform) {
+    case 'darwin':
+      return path.join(process.env.HOME, 'Library', 'Application Support', name);
+    case 'win32':
+      return process.env.LOCALAPPDATA
+        ? path.join(process.env.LOCALAPPDATA, name)
+        : path.join(process.env.USERPROFILE, 'Local Settings', 'Application Data', name);
+    case 'linux':
+    default:
+      return process.env.XDG_CONFIG_HOME
+        ? path.join(process.env.XDG_CONFIG_HOME, name)
+        : path.join(process.env.HOME, '.config', name);
+  }
+}
 
 export const VALID_IP = /(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}/;
 export const VALID_DOMAIN = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.?)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
