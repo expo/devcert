@@ -1,7 +1,6 @@
 // import path from 'path';
 import createDebug from 'debug';
-import { sync as mkdirp } from 'mkdirp';
-import { chmodSync as chmod } from 'fs';
+import fs from 'fs';
 import { pathForDomain, withDomainSigningRequestConfig, withDomainCertificateConfig } from './constants';
 import { openssl } from './utils';
 import { withCertificateAuthorityCredentials } from './certificate-authority';
@@ -16,7 +15,7 @@ const debug = createDebug('devcert:certificates');
  * added to the OS/browser trust stores), they are trusted.
  */
 export default async function generateDomainCertificate(domain: string): Promise<void> {
-  mkdirp(pathForDomain(domain));
+  await fs.promises.mkdir(pathForDomain(domain), { recursive: true });
 
   debug(`Generating private key for ${ domain }`);
   let domainKeyPath = pathForDomain(domain, 'private-key.key');
@@ -42,5 +41,5 @@ export default async function generateDomainCertificate(domain: string): Promise
 export function generateKey(filename: string): void {
   debug(`generateKey: ${ filename }`);
   openssl(['genrsa', '-out', filename, '2048']);
-  chmod(filename, 400);
+  fs.chmodSync(filename, 400);
 }

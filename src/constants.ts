@@ -1,6 +1,5 @@
 import path from 'path';
-import { unlinkSync as rm, writeFileSync as writeFile, readFileSync as readFile } from 'fs';
-import { sync as mkdirp } from 'mkdirp';
+import fs from 'fs';
 import { template as makeTemplate } from 'lodash';
 import applicationConfigPath = require('application-config-path');
 import { mktmp } from './utils';
@@ -31,17 +30,17 @@ function eolAuto(str: string): string {
 
 export function withDomainSigningRequestConfig(domain: string, cb: (filepath: string) => void) {
   let tmpFile = mktmp();
-  let source = readFile(path.join(__dirname, '../openssl-configurations/domain-certificate-signing-requests.conf'), 'utf-8');
+  let source = fs.readFileSync(path.join(__dirname, '../openssl-configurations/domain-certificate-signing-requests.conf'), 'utf-8');
   let template = makeTemplate(source);
   let result = template({ domain });
-  writeFile(tmpFile, eolAuto(result));
+  fs.writeFileSync(tmpFile, eolAuto(result));
   cb(tmpFile);
-  rm(tmpFile);
+  fs.rmSync(tmpFile);
 }
 
 export function withDomainCertificateConfig(domain: string, cb: (filepath: string) => void) {
   let tmpFile = mktmp();
-  let source = readFile(path.join(__dirname, '../openssl-configurations/domain-certificates.conf'), 'utf-8');
+  let source = fs.readFileSync(path.join(__dirname, '../openssl-configurations/domain-certificates.conf'), 'utf-8');
   let template = makeTemplate(source);
   let result = template({
     domain,
@@ -49,9 +48,9 @@ export function withDomainCertificateConfig(domain: string, cb: (filepath: strin
     databaseFile: opensslDatabaseFilePath,
     domainDir: pathForDomain(domain)
   });
-  writeFile(tmpFile, eolAuto(result));
+  fs.writeFileSync(tmpFile, eolAuto(result));
   cb(tmpFile);
-  rm(tmpFile);
+  fs.rmSync(tmpFile);
 }
 
   // confTemplate = confTemplate.replace(/DATABASE_PATH/, configPath('index.txt').replace(/\\/g, '\\\\'));
@@ -76,9 +75,9 @@ export function getLegacyConfigDir(): string {
 }
 
 export function ensureConfigDirs() {
-  mkdirp(configDir);
-  mkdirp(domainsDir);
-  mkdirp(rootCADir);
+  fs.mkdirSync(configDir, { recursive: true });
+  fs.mkdirSync(domainsDir, { recursive: true });
+  fs.mkdirSync(rootCADir, { recursive: true });
 }
 
 ensureConfigDirs();
