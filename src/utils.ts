@@ -1,4 +1,4 @@
-import { execSync, execFileSync, ExecFileSyncOptions } from 'child_process';
+import { execFileSync, ExecFileSyncOptions } from 'child_process';
 import { randomBytes } from 'crypto';
 import fs from 'fs';
 import os from 'os';
