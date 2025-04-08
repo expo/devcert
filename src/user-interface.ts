@@ -1,4 +1,4 @@
-import passwordPrompt from 'password-prompt';
+import readline from 'node:readline';
 import { waitForUser } from './utils';
 
 export interface UserInterface {
@@ -8,6 +8,25 @@ export interface UserInterface {
   startFirefoxWizard(certificateHost: string): Promise<void>;
   firefoxWizardPromptPage(certificateURL: string): Promise<string>;
   waitForFirefoxWizard(): Promise<void>;
+}
+
+async function passwordPrompt(prompt: string): Promise<string> {
+  const input = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve, reject) => {
+    input.on('SIGINT', () => {
+      reject(new Error('SIGINT'));
+    });
+    input.question(prompt, (answer) => {
+      readline.moveCursor(process.stdout, 0, -1);
+      readline.clearLine(process.stdout, 0);
+      input.write(prompt + answer.replace(/./g, '*') + '\n');
+      input.close();
+      resolve(answer);
+    });
+  });
 }
 
 const DefaultUI: UserInterface = {
