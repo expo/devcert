@@ -94,12 +94,12 @@ export default class WindowsPlatform implements Platform {
   }
 
   private encrypt(text: string, key: string) {
-    let cipher = crypto.createCipher('aes256', new Buffer(key));
+    let cipher = crypto.createCipher('aes256', Buffer.from(key));
     return cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
   }
 
   private decrypt(encrypted: string, key: string) {
-    let decipher = crypto.createDecipher('aes256', new Buffer(key));
+    let decipher = crypto.createDecipher('aes256', Buffer.from(key));
     return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
   }
 
