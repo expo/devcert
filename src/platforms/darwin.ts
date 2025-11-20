@@ -72,7 +72,7 @@ export default class MacOSPlatform implements Platform {
     }
   }
   
-  removeFromTrustStores(certificatePath: string) {
+  async removeFromTrustStores(certificatePath: string) {
     debug('Removing devcert root CA from macOS system keychain');
     try {
       run('sudo', [
@@ -88,7 +88,7 @@ export default class MacOSPlatform implements Platform {
     }
     if (this.isFirefoxInstalled() && this.isNSSInstalled()) {
       debug('Firefox install and certutil install detected. Trying to remove root CA from Firefox NSS databases');
-      removeCertificateFromNSSCertDB(this.FIREFOX_NSS_DIR, certificatePath, getCertUtilPath());
+      await removeCertificateFromNSSCertDB(this.FIREFOX_NSS_DIR, certificatePath, getCertUtilPath());
     }
   }
 
@@ -100,7 +100,7 @@ export default class MacOSPlatform implements Platform {
     }
   }
 
-  deleteProtectedFiles(filepath: string) {
+  async deleteProtectedFiles(filepath: string) {
     assertNotTouchingFiles(filepath, 'delete');
     run('sudo', ['rm', '-rf', filepath]);
   }

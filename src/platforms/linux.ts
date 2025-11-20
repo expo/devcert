@@ -67,7 +67,7 @@ export default class LinuxPlatform implements Platform {
     }
   }
   
-  removeFromTrustStores(certificatePath: string) {
+  async removeFromTrustStores(certificatePath: string) {
     try {
       run('sudo', ['rm', '/usr/local/share/ca-certificates/devcert.crt']);
       run('sudo', ['update-ca-certificates']);
@@ -76,10 +76,10 @@ export default class LinuxPlatform implements Platform {
     }
     if (commandExists('certutil')) {
       if (this.isFirefoxInstalled()) {
-        removeCertificateFromNSSCertDB(this.FIREFOX_NSS_DIR, certificatePath, 'certutil');
+        await removeCertificateFromNSSCertDB(this.FIREFOX_NSS_DIR, certificatePath, 'certutil');
       }
       if (this.isChromeInstalled()) {
-        removeCertificateFromNSSCertDB(this.CHROME_NSS_DIR, certificatePath, 'certutil');
+        await removeCertificateFromNSSCertDB(this.CHROME_NSS_DIR, certificatePath, 'certutil');
       }
     }
   }
@@ -92,7 +92,7 @@ export default class LinuxPlatform implements Platform {
     }
   }
 
-  deleteProtectedFiles(filepath: string) {
+  async deleteProtectedFiles(filepath: string) {
     assertNotTouchingFiles(filepath, 'delete');
     run('sudo', ['rm', '-rf', filepath]);
   }
