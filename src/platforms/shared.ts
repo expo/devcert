@@ -34,7 +34,7 @@ function doForNSSCertDB(nssDirGlob: string, callback: (dir: string, version: "le
  *  Given a directory or glob pattern of directories, attempt to install the
  *  CA certificate to each directory containing an NSS database.
  */
-export function addCertificateToNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): void {
+export async function addCertificateToNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): Promise<void> {
   debug(`trying to install certificate into NSS databases in ${ nssDirGlob }`);
   doForNSSCertDB(nssDirGlob, (dir, version) => {
     const dirArg = version === 'modern' ? `sql:${ dir }` : dir;
@@ -43,7 +43,7 @@ export function addCertificateToNSSCertDB(nssDirGlob: string, certPath: string, 
   debug(`finished scanning & installing certificate in NSS databases in ${ nssDirGlob }`);
 }
 
-export function removeCertificateFromNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): void {
+export async function removeCertificateFromNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): Promise<void> {
   debug(`trying to remove certificates from NSS databases in ${ nssDirGlob }`);
   doForNSSCertDB(nssDirGlob, (dir, version) => {
     const dirArg = version === 'modern' ? `sql:${ dir }` : dir;
