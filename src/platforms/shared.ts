@@ -14,9 +14,13 @@ const debug = createDebug('devcert:platforms:shared');
 async function* iterateNSSCertDBPaths(nssDirGlob: string): AsyncGenerator<string> {
   const globIdx = nssDirGlob.indexOf('*');
   if (globIdx === -1) {
-    const stat = fs.statSync(nssDirGlob);
-    if (stat.isDirectory()) {
-      yield nssDirGlob;
+    try {
+      const stat = fs.statSync(nssDirGlob);
+      if (stat.isDirectory()) {
+        yield nssDirGlob;
+      }
+    } catch (_error) {
+      // no matching directory found
     }
   } else if (globIdx === nssDirGlob.length - 1) {
     const targetDir = path.dirname(nssDirGlob);
