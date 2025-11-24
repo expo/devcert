@@ -26,7 +26,7 @@ async function* iterateNSSCertDBPaths(nssDirGlob: string): AsyncGenerator<string
     const targetDir = path.dirname(nssDirGlob);
     for (const entry of await fs.promises.readdir(targetDir, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        yield path.resolve(entry.parentPath, entry.name);
+        yield path.join(targetDir, entry.name);
       }
     }
   } else {
