@@ -110,16 +110,16 @@ export async function ensureCACertReadable(options: Options = {}): Promise<void>
    */
   try {
     const caFileContents = await currentPlatform.readProtectedFile(rootCACertPath);
-    currentPlatform.deleteProtectedFiles(rootCACertPath);
+    await currentPlatform.deleteProtectedFiles(rootCACertPath);
     writeFile(rootCACertPath, caFileContents);
   } catch (e) {
-    return installCertificateAuthority(options);
+    return await installCertificateAuthority(options);
   }
   
   // double check that we have a live one
   const remainingErrors = certErrors();
   if (remainingErrors) {
-    return installCertificateAuthority(options);
+    return await installCertificateAuthority(options);
   }
 }
 
@@ -136,9 +136,9 @@ export async function ensureCACertReadable(options: Options = {}): Promise<void>
  * silently fail that as well; with no existing certificates anymore, the
  * security exposure there is minimal.
  */
-export function uninstall(): void {
-  currentPlatform.removeFromTrustStores(rootCACertPath);
-  currentPlatform.deleteProtectedFiles(domainsDir);
-  currentPlatform.deleteProtectedFiles(rootCADir);
-  currentPlatform.deleteProtectedFiles(getLegacyConfigDir());
+export async function uninstall(): Promise<void> {
+  await currentPlatform.removeFromTrustStores(rootCACertPath);
+  await currentPlatform.deleteProtectedFiles(domainsDir);
+  await currentPlatform.deleteProtectedFiles(rootCADir);
+  await currentPlatform.deleteProtectedFiles(getLegacyConfigDir());
 }

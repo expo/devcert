@@ -3,8 +3,7 @@ import createDebug from 'debug';
 import assert from 'assert';
 import net from 'net';
 import http from 'http';
-import { sync as glob } from 'glob';
-import { readFileSync as readFile, existsSync as exists } from 'fs';
+import fs from 'fs';
 import { run } from '../utils';
 import { isMac, isLinux , configDir, getLegacyConfigDir } from '../constants';
 import UI from '../user-interface';
@@ -12,47 +11,66 @@ import { execSync as exec } from 'child_process';
 
 const debug = createDebug('devcert:platforms:shared');
 
-/**
- *  Given a directory or glob pattern of directories, run a callback for each db
- *  directory, with a version argument.
- */
-function doForNSSCertDB(nssDirGlob: string, callback: (dir: string, version: "legacy" | "modern") => void): void {
-  glob(nssDirGlob).forEach((potentialNSSDBDir) => {
-    debug(`checking to see if ${ potentialNSSDBDir } is a valid NSS database directory`);
-    if (exists(path.join(potentialNSSDBDir, 'cert8.db'))) {
-      debug(`Found legacy NSS database in ${ potentialNSSDBDir }, running callback...`)
-      callback(potentialNSSDBDir, 'legacy');
+async function* iterateNSSCertDBPaths(nssDirGlob: string): AsyncGenerator<string> {
+  const globIdx = nssDirGlob.indexOf('*');
+  if (globIdx === -1) {
+    try {
+      const stat = fs.statSync(nssDirGlob);
+      if (stat.isDirectory()) {
+        yield nssDirGlob;
+      }
+    } catch (_error) {
+      // no matching directory found
     }
-    if (exists(path.join(potentialNSSDBDir, 'cert9.db'))) {
-      debug(`Found modern NSS database in ${ potentialNSSDBDir }, running callback...`)
-      callback(potentialNSSDBDir, 'modern');
+  } else if (globIdx === nssDirGlob.length - 1) {
+    const targetDir = path.dirname(nssDirGlob);
+    for (const entry of await fs.promises.readdir(targetDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        yield path.join(targetDir, entry.name);
+      }
     }
-  });
+  } else {
+    throw new Error('Internal: Invalid `nssDirGlob` specified');
+  }
+}
+
+async function* iterateNSSCertDBs(nssDirGlob: string): AsyncGenerator<{ dir: string; version: 'legacy' | 'modern' }> {
+  for await (const dir of iterateNSSCertDBPaths(nssDirGlob)) {
+    debug(`checking to see if ${dir} is a valid NSS database directory`);
+    if (fs.existsSync(path.join(dir, 'cert8.db'))) {
+      debug(`Found legacy NSS database in ${dir}, emitting...`);
+      yield { dir, version: 'legacy' };
+    }
+    if (fs.existsSync(path.join(dir, 'cert9.db'))) {
+      debug(`Found modern NSS database in ${dir}, running callback...`)
+      yield { dir, version: 'modern' };
+    }
+  }
 }
 
 /**
  *  Given a directory or glob pattern of directories, attempt to install the
  *  CA certificate to each directory containing an NSS database.
  */
-export function addCertificateToNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): void {
+export async function addCertificateToNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): Promise<void> {
   debug(`trying to install certificate into NSS databases in ${ nssDirGlob }`);
-  doForNSSCertDB(nssDirGlob, (dir, version) => {
+  for await (const { dir, version } of iterateNSSCertDBs(nssDirGlob)) {
     const dirArg = version === 'modern' ? `sql:${ dir }` : dir;
-      run(certutilPath, ['-A', '-d', dirArg, '-t', 'C,,', '-i', certPath, '-n', 'devcert']);
-  });
+    run(certutilPath, ['-A', '-d', dirArg, '-t', 'C,,', '-i', certPath, '-n', 'devcert']);
+  }
   debug(`finished scanning & installing certificate in NSS databases in ${ nssDirGlob }`);
 }
 
-export function removeCertificateFromNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): void {
+export async function removeCertificateFromNSSCertDB(nssDirGlob: string, certPath: string, certutilPath: string): Promise<void> {
   debug(`trying to remove certificates from NSS databases in ${ nssDirGlob }`);
-  doForNSSCertDB(nssDirGlob, (dir, version) => {
+  for await (const { dir, version } of iterateNSSCertDBs(nssDirGlob)) {
     const dirArg = version === 'modern' ? `sql:${ dir }` : dir;
     try {
       run(certutilPath, ['-A', '-d', dirArg, '-t', 'C,,', '-i', certPath, '-n', 'devcert']);
     } catch (e) {
       debug(`failed to remove ${ certPath } from ${ dir }, continuing. ${ e.toString() }`)
     }
-  });
+  }
   debug(`finished scanning & installing certificate in NSS databases in ${ nssDirGlob }`);
 }
 
@@ -113,7 +131,7 @@ export async function openCertificateInFirefox(firefoxPath: string, certPath: st
     let { pathname } = new URL(req.url);
     if (pathname === '/certificate') {
       res.writeHead(200, { 'Content-type': 'application/x-x509-ca-cert' });
-      res.write(readFile(certPath));
+      res.write(fs.readFileSync(certPath));
       res.end();
     } else {
       res.writeHead(200);
