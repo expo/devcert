@@ -30,7 +30,7 @@ const debug = createDebug('devcert:certificate-authority');
  */
 export default async function installCertificateAuthority(options: Options = {}): Promise<void> {
   debug(`Uninstalling existing certificates, which will be void once any existing CA is gone`);
-  uninstall();
+  await uninstall();
   ensureConfigDirs();
 
   debug(`Making a temp working directory for files to copied in`);
