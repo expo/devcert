@@ -272,4 +272,4 @@ pristine state for another round of testing.
 
 ## License
 
-MIT © [Dave Wasmer](http://davewasmer.com)
+MIT © [Dave Wasmer](http://davewasmer.com), © [650 Industries, Inc. (aka Expo)](https://expo.dev). See [LICENSE](LICENSE).
